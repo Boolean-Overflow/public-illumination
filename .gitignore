@@ -1,0 +1,6 @@
+*.txt
+dist
+.vscode
+tmp
+.tmp
+.DS_Store
