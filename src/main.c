@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "tads/graph/graph.h"
+#include "tads/user/user.h"
 #include "utils/utils.h"
 
 int auth_menu() {
@@ -23,6 +25,8 @@ int app_menu() {
 }
 
 int main() {
+  Graph* graph = NULL;
+
 auth: {
   int option = menu(auth_menu);
 
@@ -57,26 +61,49 @@ app: {
         exit(EXIT_FAILURE);
       }
 
-      int v, a;
-      fscanf(file, "%d %d", &v, &a);
-      // inicializar graph
-      int start, end;
+      int vertices, edges;
+      fscanf(file, "%d %d", &vertices, &edges);
+      graph = createGraph(vertices);
+
+      int srcPost, destinationPost;
       float distance;
-      while (fscanf(file, "%d %d %f", &start, &end, &distance) != EOF) {
-        if (start == 0 && end == 0) break;
-        // Adicionar rua
-        printf(" [%d] <%.2f> [%d]\n", start, distance, end);
+      while (fscanf(file, "%d %d %f", &srcPost, &destinationPost, &distance) != EOF) {
+        if (srcPost == 0 && destinationPost == 0) break;
+
+        graph = addStreet(graph, srcPost, destinationPost, distance);
       }
 
       fclose(file);
+
+      printf("Ficheiro \"%s\" carregado com sucesso!", filename);
+      illuminateStreets(graph);
+    } break;
+    case 3: {
+      puts("===============REMOVER POSTE=================");
+      int post;
+      printf("Informe o valor do poste: ");
+      validate_option(&post, 1, graph->totalPosts, "Valor de poste inválido!");
+      graph = removePost(graph, post);
+
+      printf("Poste %d removido!", post);
+    } break;
+    case 7: {
+      puts("=========LOCALIDADE=========");
+      illuminateStreets(graph);
+    } break;
+    case 10: {
+      puts("=============DESTRUIR SIMULAÇÃO============");
+      graph = destroyGraph(graph);
+      if (graph) perror("Ocorreu um erro ao destruir a simulação!"), exit(EXIT_FAILURE);
+
+      puts("Simulação destruida com sucesso!");
     } break;
     case 11:
       goto auth;
       break;
-    default:
-      printf("Opção %d\n", option);
-      goto app;
   }
+  pause("");
+  goto app;
 }
 end:
   puts("Obrigado ;)\nBy: Grupo 2");
