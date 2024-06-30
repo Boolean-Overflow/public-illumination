@@ -7,7 +7,7 @@
 
 #include "../../utils/utils.h"
 
-Graph* loadPlace() {
+Graph* loadPlace() {  // Carrega a localidade a partir do ficheiro
   char filename[255];
   do {
     fflush(stdin);
@@ -113,7 +113,6 @@ void handleTotalIlumination(Graph* graph) {
   printf("Custo total: %.2fKzs", total * COST_PER_METER);
 }
 void handleBestSolution(Graph* graph) {
-  // MST
   float totalCost = illuminateStreets(graph) * COST_PER_METER;
   printf("\n\n");
   float bestCost = primMST(graph) * COST_PER_METER;
@@ -124,8 +123,17 @@ void handleBestSolution(Graph* graph) {
       totalCost, bestCost, f, (f / totalCost) * 100);
 }
 void handleIlluminateAdjacentStreet(Graph* graph) {
-  // DIJKSTRA
-  puts("Illuminate Adjacent Streets");
+  int src, dest;
+
+  printf("Informe o poste de origem: ");
+  validateOption(&src, 1, graph->totalPosts, NULL);
+
+  printf("Informe o poste de destino: ");
+  validateOption(&dest, 1, graph->totalPosts, NULL);
+  float distance = dijkstraSP(graph, src, dest);
+
+  printf("\nCusto total de %d à %d distando %.2fm: %.2f\n", src, dest, distance,
+         distance * COST_PER_METER);
 }
 void handleDestroySimulation(Graph** graph) {
   puts("=============DESTRUIR SIMULAÇÃO============");

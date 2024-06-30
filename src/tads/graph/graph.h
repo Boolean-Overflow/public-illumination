@@ -29,5 +29,6 @@ float illuminateStreetsFromPost(Graph* graph, int srcPost);
 float illuminateStreets(Graph* graph);
 Graph* destroyGraph(Graph* graph);
 float primMST(Graph* graph);
+float dijkstraSP(Graph* graph, int src, int destination);
 
 #endif

@@ -20,7 +20,6 @@ Graph* createGraph(int vertices) {
   graph->posts = (Post*)malloc(vertices * sizeof(Post) + 1);
   graph->emptyPosts = 0;
 
-  // TODO: Change to base 0
   for (int i = 1; i <= vertices; ++i) graph->posts[i].head = NULL;
 
   return graph;
@@ -149,7 +148,6 @@ float illuminateStreetsFromPost(Graph* graph, int srcPost) {
 }
 
 float illuminateStreets(Graph* graph) {
-  // TODO: Change to base 0
   if (!graph) {
     puts("Grafo inexistente!\n Considere criar uma localidade.");
     return 0.0;
@@ -190,7 +188,6 @@ Graph* updateDistance(Graph* graph, int src, int dest, float newDistance) {
 }
 
 Graph* destroyGraph(Graph* graph) {
-  // TODO: Change to base 0
   for (int i = 0; i <= graph->totalPosts; ++i) {
     Street* current = graph->posts[i].head;
 
@@ -218,7 +215,7 @@ float printMST(int parent[], float distances[], int totalPosts) {
 }
 
 int minDistance(float dist[], int mstSet[], int totalPosts) {
-  float min = 1e9;  // Valor arbitrariamente grande
+  float min = 1e9;
   int min_index;
 
   for (int v = 1; v <= totalPosts; v++)
@@ -227,7 +224,6 @@ int minDistance(float dist[], int mstSet[], int totalPosts) {
   return min_index;
 }
 
-// Função para construir e imprimir o MST usando o algoritmo de Prim
 float primMST(Graph* graph) {
   int totalPosts = graph->totalPosts;
   int parent[totalPosts + 1];
@@ -239,16 +235,16 @@ float primMST(Graph* graph) {
   distances[1] = 0.0;
   parent[1] = -1;
 
-  for (int post = 1; post <= totalPosts - 1; post++) {
-    int minPostIndex = minDistance(distances, mstSet, totalPosts);
-    mstSet[minPostIndex] = 1;
+  for (int count = 1; count <= totalPosts - 1; count++) {
+    int post = minDistance(distances, mstSet, totalPosts);
+    mstSet[post] = 1;
 
-    Street* current = graph->posts[minPostIndex].head;
+    Street* current = graph->posts[post].head;
     while (current) {
       int destination = current->destination;
       if (mstSet[destination] == 0 &&
           current->distance < distances[destination]) {
-        parent[destination] = minPostIndex;
+        parent[destination] = post;
         distances[destination] = current->distance;
       }
       current = current->next;
@@ -256,4 +252,58 @@ float primMST(Graph* graph) {
   }
 
   return printMST(parent, distances, totalPosts);
+}
+
+void printPath(int parent[], int destination) {
+  if (parent[destination] == -1) {
+    printf("%d ", destination);
+    return;
+  }
+  printPath(parent, parent[destination]);
+  printf("%d ", destination);
+}
+
+void printShortestPaths(int parent[], float dist[], int totalPosts, int src) {
+  printf("Caminhos mais curtos a partir do vértice %d:\n", src);
+  for (int destination = 1; destination <= totalPosts; destination++) {
+    if (destination != src) {
+      printf("Caminho até %d: ", destination);
+      printPath(parent, destination);
+      printf(" com custo %.2f\n", dist[destination]);
+    }
+  }
+}
+
+float dijkstraSP(Graph* graph, int src, int destination) {
+  int totalPosts = graph->totalPosts;
+  float distances[totalPosts + 1];
+  int visited[totalPosts + 1];
+  int parent[totalPosts + 1];
+
+  for (int i = 1; i <= totalPosts; i++) {
+    distances[i] = 1e9;
+    visited[i] = 0;
+    parent[i] = -1;
+  }
+
+  distances[src] = 0.0;
+
+  for (int count = 1; count <= totalPosts - 1; count++) {
+    int post = minDistance(distances, visited, totalPosts);
+    visited[post] = 1;
+
+    Street* current = graph->posts[post].head;
+    while (current) {
+      int destination = current->destination;
+      if (!visited[destination] && distances[post] != 1e9 &&
+          distances[post] + current->distance < distances[destination]) {
+        distances[destination] = distances[post] + current->distance;
+        parent[destination] = post;
+      }
+      current = current->next;
+    }
+  }
+
+  printPath(parent, destination);
+  return distances[destination];
 }
