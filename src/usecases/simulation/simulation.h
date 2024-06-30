@@ -6,6 +6,6 @@
 
 #define COST_PER_METER 1600
 
-bool simulationUseCase(User* user);
+bool simulationUseCase(Graph**, User*);
 
 #endif

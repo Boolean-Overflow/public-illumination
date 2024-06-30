@@ -53,8 +53,3 @@ int menu(int (*show_options)()) {
   fflush(stdin);
   return option;
 }
-
-void readWord(char str[], size_t size) {
-  fgets(str, size, stdin);
-  str[strspn(str, "\n")] = '\0';
-}

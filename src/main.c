@@ -12,6 +12,7 @@
 int main() {
   Avl* tree = loadUsers(NULL);
   User* loggedUser = NULL;
+  Graph* graph = NULL;
 
 auth: {
   loggedUser = authUseCase(&tree);
@@ -23,7 +24,7 @@ auth: {
   }
 }
 
-  bool endApplication = simulationUseCase(loggedUser);
+  bool endApplication = simulationUseCase(&graph, loggedUser);
   if (!endApplication) goto auth;
 
 end: {

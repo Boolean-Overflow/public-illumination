@@ -20,7 +20,7 @@ hash_t hash(UserData user) {
   hash_t hash = 0;
   char* username = user.username;
   char* password = user.password;
-
+  //
   while (*username) hash = (hash << 5) + *username++;
   while (*password) hash = (hash << 5) + *password++;
 

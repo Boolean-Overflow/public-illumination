@@ -13,15 +13,21 @@ typedef struct Post {
 
 typedef struct Graph {
   int totalPosts;
+  int emptyPosts;
   Post* posts;
 } Graph;
 
 Graph* createGraph(int posts);
-Graph* addStreet(Graph* graph, int srcPost, int destinationPost, float distance);
-Graph* updateDistance(Graph* graph, int srcPost, int destinationPost, float newDistance);
+Graph* addStreet(Graph* graph, int srcPost, int destinationPost,
+                 float distance);
+Graph* removeStreet(Graph* graph, int src, int destination);
+Graph* updateDistance(Graph* graph, int srcPost, int destinationPost,
+                      float newDistance);
+Graph* addPost(Graph* graph);
 Graph* removePost(Graph* graph, int srcPost);
-void illuminateStreetsFromPost(Graph* graph, int srcPost);
-void illuminateStreets(Graph* graph);
+float illuminateStreetsFromPost(Graph* graph, int srcPost);
+float illuminateStreets(Graph* graph);
 Graph* destroyGraph(Graph* graph);
+void primMST(Graph* graph);
 
 #endif
