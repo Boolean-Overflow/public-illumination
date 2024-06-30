@@ -5,7 +5,7 @@ PROJECT_NAME = illumination
 COMPILED_FILE_NAME = $(PROJECT_NAME)
 
 OUTPUT_DIR = dist
-SRCS = $(wildcard ./src/*.c) $(wildcard ./src/**/*.c) $(wildcard ./src/**/**/*.c)
+SRCS = $(wildcard ./src/*.c) $(wildcard ./src/**/*.c) $(wildcard ./src/**/**/*.c) $(wildcard ./src/**/**/**/*.c) 
 OBJS = $(OUTPUT_DIR)/libs.o
 
 TARGET = $(OUTPUT_DIR)/$(COMPILED_FILE_NAME)
@@ -25,7 +25,7 @@ endif
 
 .PHONY: all clean
 
-all: $(OUTPUT_DIR) $(TARGET)
+compile: $(OUTPUT_DIR) $(TARGET)
 
 $(OUTPUT_DIR):
 	$(MKDIR) $(call FIXPATH, $(OUTPUT_DIR))
@@ -41,5 +41,5 @@ $(OBJS): $(SRCS)
 clean:
 	$(RM) $(call FIXPATH, $(OUTPUT_DIR))
 
-run: all
+run: compile
 	$(call FIXPATH, ./)$(TARGET)

@@ -1,162 +1,185 @@
 #include "user.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "helpers/avl-utils.h"
+#include "helpers/user-utils.h"
 
-int userExists(User users[], int count, char* username) {
-  for (int i = 0; i < count; ++i) {
-    if (strcmp(users[i].username, username) == 0) {
-      return i;
+void insertUser(Avl** tree, UserData userData) {
+  User* user = createUser(userData);
+  *tree = insertUserUtil(*tree, user);
+  saveUser(user, NULL);
+}
+
+Avl* removeUser(Avl* tree, char* username) {
+  // Return NULL if tree does not exist
+  if (!tree) {
+    puts("Utilizador não encontrado!");
+    return tree;
+  }
+
+  // Recursive removal
+  if (strcmp(username, tree->user->username) < 0)
+    tree->left = removeUser(tree->left, username);
+  else if (strcmp(username, tree->user->username) > 0)
+    tree->right = removeUser(tree->right, username);
+  else {
+    // Checking if both children exist
+    if (tree->left && tree->right) {
+      Avl* tmp = minValueFrom(tree->right);
+
+      // copy data
+      tree->user = tmp->user;
+
+      tree->right = removeUser(tree->right, tmp->user->username);
+    } else {
+      Avl* child = tree->left ? tree->left : tree->right;
+      if (!child) {
+        child = tree;
+        tree = NULL;
+      } else
+        *tree = *child;
+
+      free(child);
+      printf("Utilizador %s removido com sucesso\n", username);
     }
   }
-  return -1;
-}
 
-void addUser(User users[], int* count, char* username, char* password, int hashValue, int isAdm) {
-  strcpy(users[*count].username, username);
-  strcpy(users[*count].password, password);
-  users[*count].hashValue = hashValue;
-  users[*count].isAdm = isAdm;
-  (*count)++;
-  printf("Usuário criado com sucesso.\n");
-}
+  // If the tree became empty
+  if (!tree) return tree;
 
-void saveAllUsers(User users[], int count) {
-  FILE* fp = fopen(USER_FILE, "w");
-  if (fp == NULL) {
-    perror("Erro ao abrir arquivo.");
-    return;
+  // Update height
+  tree->height = updateHeight(tree);
+
+  // Check balance
+  int bf = getBalanceFactor(tree);
+
+  // Perform rotations if needed
+  if (bf > 1 && getBalanceFactor(tree->left) >= 0) return rotateRight(tree);
+
+  if (bf > 1 && getBalanceFactor(tree->left) < 0) {
+    tree->left = rotateLeft(tree->left);
+    return rotateRight(tree);
   }
 
-  for (int i = 0; i < count; ++i) {
-    fprintf(fp, "%s %u %d\n", users[i].username, users[i].hashValue, users[i].isAdm);
+  if (bf < -1 && getBalanceFactor(tree->right) <= 0) return rotateLeft(tree);
+
+  if (bf < -1 && getBalanceFactor(tree->right) > 0) {
+    tree->right = rotateRight(tree->right);
+    return rotateLeft(tree);
   }
 
-  fclose(fp);
+  return tree;
 }
 
-void saveUser(char* username, unsigned int hashValue, int isAdm) {
-  FILE* fp = fopen(USER_FILE, "a+");
-  if (fp == NULL) {
-    perror("Erro ao abrir arquivo.");
-    return;
-  }
-  fprintf(fp, "%s %u %d\n", username, hashValue, isAdm);
-  fclose(fp);
+User* findOne(Avl* tree, char* username) {
+  if (!tree) return NULL;
+
+  // Recursive search
+  if (strcmp(username, tree->user->username))
+    return findOne(tree->right, username);
+
+  if (strcmp(username, tree->user->username))
+    return findOne(tree->left, username);
+
+  return tree->user;
 }
 
-int loadUsers(User users[]) {
-  FILE* fp = fopen(USER_FILE, "r");
-  if (fp == NULL) {
-    perror("Erro ao abrir arquivo.");
-    return 0;
-  }
+void findAllUsers(Avl* users) {
+  if (!users) return;
 
-  int count = 0;
-  while (fscanf(fp, "%s %u %d\n", users[count].username, &users[count].hashValue, &users[count].isAdm) != EOF) {
-    count++;
-  }
-
-  fclose(fp);
-  return count;
-}
-int isSpace(char* str) {
-  while (*str != '\0') {
-    if (*str == ' ') return 1;
-    str++;
-  }
-  return 0;
+  // Print in order
+  findAllUsers(users->left);
+  puts(users->user->username);
+  findAllUsers(users->right);
 }
 
-void getUserName(User users[], char* username, int count) {
-  printf("Digite o nome de usuario: ");
-  scanf("%s", username);
+// bool clearUsers(Avl** users) {}
 
-  while (userExists(users, count, username) != -1 || isSpace(username)) {
-    printf("Nome de usuario invalido.\nDigite outro nome de usuario: ");
-    scanf("%s", username);
-  }
-}
-
-void getPassWord(char* password) {
-  printf("Digite a Palavra-Passe do usuario: ");
-  scanf("%s", password);
-
-  while (isSpace(password)) {
-    printf("Palavra-Passe Inválida.\nDigite novamente a Palavra-Passe: ");
-    scanf("%s", password);
-  }
-}
-
-unsigned int hashF(char* username, char* password) {
-  unsigned int hash = 0;
-  int c;
-  while ((c = *username++)) {
-    hash = hash * 31 + c;
-  }
-  while ((c = *password++)) {
-    hash = hash * 31 + c;
-  }
-  return hash % MAX_USER;
-}
-
-void createUser(User users[], int* userCount) {
-  char username[MAX_USERNAME];
-  char password[MAX_PASSWORD];
-  getUserName(users, username, *userCount);
-  getPassWord(password);
-  int hashValue = hashF(username, password);
-  int isAdm = 0;
-  addUser(users, userCount, username, password, hashValue, isAdm);
-  saveUser(username, hashValue, isAdm);
-}
-
-User* login(User users[], int userCount) {
-  User* user = malloc(sizeof(User));
-  char username[MAX_USERNAME];
-  printf("Digite o nome de usuario: ");
-  scanf("%s", username);
-  int i = userExists(users, userCount, username);
-  if (i == -1) {
-    printf("Nome de usuario Invalido!");
+// User functions
+Avl* loadUsers(long* count) {
+  FILE* file = fopen(USERS_FILE, "a+");
+  if (!file) {
+    fprintf(stderr, "Erro ao abrir o arquivo %s\n", USERS_FILE);
     return NULL;
   }
-  char password[MAX_PASSWORD];
-  getPassWord(password);
-  unsigned int hashValue = hashF(username, password);
-  if (users[i].hashValue == hashValue) {
-    printf("Acesso a conta!");
-    user = &(users[i]);
-    return user;
-  } else {
-    printf("Password Invalida!");
-    return NULL;
+
+  // if empty append the admin
+  long size = ftell(file);
+
+  if (size == 0L) {
+    UserData admin = {"admin", "admin"};
+    saveUser(createUserUtil(admin, true), file);
   }
+
+  rewind(file);
+  // loading users from file
+  int res;
+  User user;
+  Avl* tree = NULL;
+  while ((res = fscanf(file, "%s %lu %hu", user.username, &user.password,
+                       (short*)(&user.isAdmin))) &&
+         (res == 3 && res != EOF)) {
+    tree = insertUserUtil(tree, allocateUser(user));
+    if (count) *count += 1;
+  }
+
+  fclose(file);
+
+  return tree;
 }
 
-void editUsername(User users[], int Usercount, int pos) {
-  if (pos == -1) {
-    printf("Usuario Inexistente!");
-    return;
+bool saveUser(User* user, FILE* stream) {
+  if (!user) {
+    perror("Sem dados para salvar!");
+    return false;
   }
-  char newName[MAX_USERNAME];
-  getUserName(users, newName, Usercount);
-  unsigned int newHash = hashF(newName, users[pos].password);
-  strcpy(users[pos].username, newName);
-  users[pos].hashValue = newHash;
-  saveAllUsers(users, Usercount);
+
+  FILE* file = stream ? stream : fopen(USERS_FILE, "a+");
+  if (!file) {
+    fprintf(stderr, "Erro ao abrir o arquivo %s\n", USERS_FILE);
+    return false;
+  }
+
+  fprintf(file, "%s %lu %hu\n", user->username, user->password, user->isAdmin);
+
+  if (!stream) fclose(file);
+
+  return true;
 }
 
-void editUserpassword(User users[], int Usercount, int pos) {
-  if (pos == -1) {
-    printf("Usuario Inexistente!");
+void saveAllUsersUtil(Avl* tree, FILE* stream) {
+  if (!tree) return;
+
+  saveAllUsersUtil(tree->left, stream);
+  saveUser(tree->user, stream);
+  saveAllUsersUtil(tree->right, stream);
+}
+
+void saveAllUsers(Avl* users) {
+  if (!users) return;
+  FILE* file = fopen(USERS_FILE, "w");
+
+  saveAllUsersUtil(users, file);
+
+  fclose(file);
+}
+
+void updateUser(Avl* tree, UserData newUserData, char* oldPassword) {
+  if (!tree) return;
+
+  User* foundUser = findOne(tree, newUserData.username);
+  if (!foundUser) {
+    fprintf(stderr, "Utilizador não encontrado!");
     return;
   }
-  char newPassword[MAX_PASSWORD];
-  getPassWord(newPassword);
-  unsigned int newHash = hashF(users[pos].username, newPassword);
-  strcpy(users[pos].password, newPassword);
-  users[pos].hashValue = newHash;
-  saveAllUsers(users, Usercount);
+  UserData user = newUserData;
+  strcpy(user.password, oldPassword);
+
+  if (hash(user) != foundUser->password) {
+    fprintf(stderr, "Utilizador não encontrado!");
+    return;
+  }
+
+  foundUser->password = hash(newUserData);
+
+  saveAllUsers(tree);
 }

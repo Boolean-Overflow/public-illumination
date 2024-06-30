@@ -2,29 +2,31 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-void clear_console() { printf("\033[2J\033[H"); }
+void clearConsole() { printf("\033[2J\033[H"); }
 
-void pause(char* str) {
-  puts(*str ? str : "\nClique em qualquer tecla para continuar.");
+void pause() {
+  puts("\nClique na tecla <Enter> para continuar.");
   fflush(stdin);
   getchar();
-  clear_console();
+  clearConsole();
 }
 
-int show_options(const char** options, int options_count) {
+int showOptions(const char** options, int options_count) {
   if (!options || !(*options) || options_count < 1) {
     puts("Nothing to show!");
     return -1;
   }
 
-  for (int i = 0; i < options_count; ++i) printf("%2d - %s\n", i + 1, options[i]);
+  for (int i = 0; i < options_count; ++i)
+    printf("%2d - %s\n", i + 1, options[i]);
 
   return options_count;
 }
 
-void validate_option(int* option, int min, int max, char* error_message) {
-  if (!error_message) error_message = "Invalid Option!";
+void validateOption(int* option, int min, int max, char* error_message) {
+  if (!error_message) error_message = "Opção inválida!";
   int valid = 1;
   do {
     if (!valid) puts(error_message);
@@ -36,7 +38,7 @@ void validate_option(int* option, int min, int max, char* error_message) {
 }
 
 int menu(int (*show_options)()) {
-  clear_console();
+  clearConsole();
   if (!show_options) {
     perror("Missing show options function!");
     exit(EXIT_FAILURE);
@@ -46,8 +48,13 @@ int menu(int (*show_options)()) {
   // printf("%2d - Exit\n", ++options_count);
   int option;
 
-  validate_option(&option, 1, options_count, NULL);
+  validateOption(&option, 1, options_count, NULL);
 
   fflush(stdin);
   return option;
+}
+
+void readWord(char str[], size_t size) {
+  fgets(str, size, stdin);
+  str[strspn(str, "\n")] = '\0';
 }

@@ -1,29 +1,68 @@
-#ifndef __USER__
-#define __USER__
+#ifndef __USER_H__
+#define __USER_H__
 
-#define MAX_USERNAME 50
+#define MAX_USERNAME 20
 #define MAX_PASSWORD 16
-#define MAX_USER 100
-#define ATTEMPTS 3
-#define USER_FILE "user.txt"
+#define USERS_FILE "users.dat"
+typedef unsigned long int hash_t;
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct {
   char username[MAX_USERNAME];
   char password[MAX_PASSWORD];
-  unsigned int hashValue;
-  int isAdm;
+} UserData;
+
+typedef struct {
+  char username[MAX_USERNAME];
+  hash_t password;
+  bool isAdmin;
 } User;
 
-int userExists(User users[], int count, char* username);
-void addUser(User users[], int* count, char* username, char* password, int hashValue, int isAdm);
-void saveAllUsers(User users[], int count);
-void saveUser(char* username, unsigned int hashValue, int isAdm);
-int loadUsers(User users[]);
-int isSpace(char* str);
-void getUserName(User users[], char* username, int count);
-void getPassWord(char* password);
-void createUser(User users[], int* userCount);
-User* login(User users[], int userCount);
-void editUsername(User users[], int Usercount, int pos);
-void editUserpassword(User users[], int Usercount, int pos);
+typedef struct Node {
+  User* user;
+
+  int height;
+  struct Node *left, *right;
+} Avl;
+
+// Avl functions
+
+/** Add a user to the AVL tree
+ * @param users Pointer to the root pointer of the AVL tree
+ * @param user user data to be added
+ * @result Pointer to the root of the updated AVL tree
+ */
+void insertUser(Avl** tree, UserData userData);
+
+/** Remove a user from the AVL tree
+ * @param users Pointer to the root pointer of the AVL tree
+ * @param username Key of the user to be removed
+ * @result Pointer to the root of the updated AVL tree
+ */
+Avl* removeUser(Avl* users, char* username);
+
+/** Find a user by their number (key)
+ * @param users Pointer to the root pointer of the AVL tree
+ * @param username Key of the user to be found
+ * @return Pointer to the found user, or NULL if not found
+ */
+User* findOne(Avl* users, char* username);
+
+/**
+ * Print all users data
+ * @param users: Pointer to the users root of the AVL tree
+ */
+void findAllUsers(Avl* users);
+// bool clearUsers(Avl** users);
+
+// User functions
+Avl* loadUsers(long* count);
+bool saveUser(User* user, FILE* stream);
+void saveAllUsers(Avl* users);
+void updateUser(Avl* users, UserData newUserData, char* oldPassword);
+
 #endif
