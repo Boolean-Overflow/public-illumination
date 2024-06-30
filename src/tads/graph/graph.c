@@ -206,7 +206,7 @@ Graph* destroyGraph(Graph* graph) {
   return NULL;
 }
 
-void printMST(int parent[], float distances[], int totalPosts) {
+float printMST(int parent[], float distances[], int totalPosts) {
   printf("Arestas do MST:\n");
   float cost = 0.0;
   for (int post = 2; post <= totalPosts; post++) {
@@ -214,7 +214,7 @@ void printMST(int parent[], float distances[], int totalPosts) {
     cost += distances[post];
   }
 
-  printf("Custo total de %.2f \n", cost);
+  return cost;
 }
 
 int minDistance(float dist[], int mstSet[], int totalPosts) {
@@ -228,7 +228,7 @@ int minDistance(float dist[], int mstSet[], int totalPosts) {
 }
 
 // Função para construir e imprimir o MST usando o algoritmo de Prim
-void primMST(Graph* graph) {
+float primMST(Graph* graph) {
   int totalPosts = graph->totalPosts;
   int parent[totalPosts + 1];
   float distances[totalPosts + 1];
@@ -255,5 +255,5 @@ void primMST(Graph* graph) {
     }
   }
 
-  printMST(parent, distances, totalPosts);
+  return printMST(parent, distances, totalPosts);
 }

@@ -114,7 +114,14 @@ void handleTotalIlumination(Graph* graph) {
 }
 void handleBestSolution(Graph* graph) {
   // MST
-  puts("Best Solution");
+  float totalCost = illuminateStreets(graph) * COST_PER_METER;
+  printf("\n\n");
+  float bestCost = primMST(graph) * COST_PER_METER;
+  float f = totalCost - bestCost;
+  printf(
+      "\n\nCusto total: %.2fKzs\nCusto eficiente: "
+      "%.2fKzs\nValor poupado: %.2fKzs[%.1f%%]\n",
+      totalCost, bestCost, f, (f / totalCost) * 100);
 }
 void handleIlluminateAdjacentStreet(Graph* graph) {
   // DIJKSTRA

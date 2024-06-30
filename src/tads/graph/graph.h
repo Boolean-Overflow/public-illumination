@@ -28,6 +28,6 @@ Graph* removePost(Graph* graph, int srcPost);
 float illuminateStreetsFromPost(Graph* graph, int srcPost);
 float illuminateStreets(Graph* graph);
 Graph* destroyGraph(Graph* graph);
-void primMST(Graph* graph);
+float primMST(Graph* graph);
 
 #endif
