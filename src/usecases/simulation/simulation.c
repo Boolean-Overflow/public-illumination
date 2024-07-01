@@ -134,7 +134,7 @@ void handleIlluminateAdjacentStreet(Graph* graph) {
   validateOption(&src, 1, graph->totalPosts, NULL);
 
   printf("Illuminação de todas as ruas partindo do poste %d\n", src);
-  float distance = illuminateStreetsFromPost(graph, src, false, false);
+  float distance = illuminateStreetsFromPost(graph, src, false, true);
   puts("\n");
   printf("CUSTO TOTAL: %.2f\n", distance * COST_PER_METER);
 }
@@ -165,8 +165,8 @@ void handleBestConnection(Graph* graph) {
 
   float distance = dijkstraSP(graph, src, dest);
 
-  printf("\nCusto total de %d à %d distando %.2fm: %.2f\n", src, dest, distance,
-         distance * COST_PER_METER);
+  printf("\nCusto total de %d à %d distando %.2fm: %.2fKzs\n", src, dest,
+         distance, distance * COST_PER_METER);
 }
 
 void handleDestroySimulation(Graph** graph) {
