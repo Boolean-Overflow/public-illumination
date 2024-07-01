@@ -1,4 +1,4 @@
-# Trie R-way
+# Public IIllumination
 
 ## Running the Project
 
