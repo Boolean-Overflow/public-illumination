@@ -83,16 +83,26 @@ User* findOne(Avl* tree, char* username) {
   return tree->user;
 }
 
-void findAllUsers(Avl* users) {
-  if (!users) return;
+void findAllUsers(Avl* tree, char* except) {
+  if (!tree) return;
 
   // Print in order
-  findAllUsers(users->left);
-  puts(users->user->username);
-  findAllUsers(users->right);
+  findAllUsers(tree->left, except);
+  if (strcmp(except, tree->user->username) != 0) puts(tree->user->username);
+  findAllUsers(tree->right, except);
 }
 
-// bool clearUsers(Avl** users) {}
+void clearUsers(Avl** tree) {
+  if (!tree || !(*tree)) return;
+
+  clearUsers(&(*tree)->left);
+  clearUsers(&(*tree)->right);
+
+  free((*tree)->user);
+  free(*tree);
+
+  *tree = NULL;
+}
 
 // User functions
 Avl* loadUsers(long* count) {

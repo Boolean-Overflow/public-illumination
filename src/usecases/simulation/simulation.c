@@ -43,9 +43,13 @@ Graph* loadPlace() {  // Carrega a localidade a partir do ficheiro
   return graph;
 }
 
-void hadleAddPost(Graph** graph) { *graph = addPost(*graph); }
+void hadleAddPost(Graph** graph) {
+  puts("\n===============ADICIONAR POSTE===============\n");
+  *graph = addPost(*graph);
+}
 
 void handleRemovePost(Graph** graph) {
+  puts("\n===============REMOVER POSTE===============\n");
   int srcPost = 0;
   printf("Informe o valor do poste: ");
   validateOption(&srcPost, 1, (*graph)->totalPosts, NULL);
@@ -56,6 +60,8 @@ void handleRemovePost(Graph** graph) {
 }
 
 void handleAddStreet(Graph** graph) {
+  puts("\n===============ADICIONAR RUA===============\n");
+
   int src, dest, valid = 1;
   float distance;
 
@@ -75,6 +81,8 @@ void handleAddStreet(Graph** graph) {
   printf("Rua de %d à %d distando %.2fm adicionada !", src, dest, distance);
 }
 void handleRemoveStreet(Graph** graph) {
+  puts("\n===============REMOVER RUA===============\n");
+
   int src, dest;
 
   printf("Informe o poste de origem: ");
@@ -89,6 +97,8 @@ void handleRemoveStreet(Graph** graph) {
 }
 
 void handleUpdateDistance(Graph** graph) {
+  puts("\n===============EDITAR DISTÂNCIA===============\n");
+
   int src, dest, valid = 1;
   float newDistance;
 
@@ -105,24 +115,46 @@ void handleUpdateDistance(Graph** graph) {
   } while ((valid = !scanf("%f", &newDistance)));
 
   *graph = updateDistance(*graph, src, dest, newDistance);
-  printf("\n");
+  printf("\n\n");
 }
 void handleTotalIlumination(Graph* graph) {
-  puts("Total Illumination");
-  float total = illuminateStreets(graph);
-  printf("Custo total: %.2fKzs", total * COST_PER_METER);
+  puts("\n===============ILLUMINAÇÃO TOTAL===============\n");
+
+  float distance = illuminateStreets(graph, false);
+  puts("\n");
+  printf("Custo total: %.2fKzs", distance * COST_PER_METER);
 }
+
+void handleIlluminateAdjacentStreet(Graph* graph) {
+  puts("\n===============ILUMINAÇÃO DE RUAS ADJACENTES===============\n");
+
+  int src;
+
+  printf("Informe o poste de origem: ");
+  validateOption(&src, 1, graph->totalPosts, NULL);
+
+  printf("Illuminação de todas as ruas partindo do poste %d\n", src);
+  float distance = illuminateStreetsFromPost(graph, src, false, false);
+  puts("\n");
+  printf("CUSTO TOTAL: %.2f\n", distance * COST_PER_METER);
+}
+
 void handleBestSolution(Graph* graph) {
-  float totalCost = illuminateStreets(graph) * COST_PER_METER;
-  printf("\n\n");
+  puts("\n===============MELHOR SOLUÇÃO PARA A ILUMINAÇÃO===============\n");
+
+  float totalCost = illuminateStreets(graph, true) * COST_PER_METER;
   float bestCost = primMST(graph) * COST_PER_METER;
-  float f = totalCost - bestCost;
+  float saved = totalCost - bestCost;
+
   printf(
       "\n\nCusto total: %.2fKzs\nCusto eficiente: "
-      "%.2fKzs\nValor poupado: %.2fKzs[%.1f%%]\n",
-      totalCost, bestCost, f, (f / totalCost) * 100);
+      "%.2fKzs\nValor poupado: %.2fKzs (%.1f%%)\n",
+      totalCost, bestCost, saved, (saved / totalCost) * 100);
 }
-void handleIlluminateAdjacentStreet(Graph* graph) {
+
+void handleBestConnection(Graph* graph) {
+  puts("\n===============MELHOR LIGAÇÃO ENTRE POSTES===============\n");
+
   int src, dest;
 
   printf("Informe o poste de origem: ");
@@ -130,14 +162,16 @@ void handleIlluminateAdjacentStreet(Graph* graph) {
 
   printf("Informe o poste de destino: ");
   validateOption(&dest, 1, graph->totalPosts, NULL);
+
   float distance = dijkstraSP(graph, src, dest);
 
   printf("\nCusto total de %d à %d distando %.2fm: %.2f\n", src, dest, distance,
          distance * COST_PER_METER);
 }
+
 void handleDestroySimulation(Graph** graph) {
   puts("=============DESTRUIR SIMULAÇÃO============");
-  *graph = destroyGraph(*graph);
+  destroyGraph(graph);
 
   if (*graph)
     perror("Ocorreu um erro ao destruir a simulação!"), exit(EXIT_FAILURE);
@@ -146,17 +180,27 @@ void handleDestroySimulation(Graph** graph) {
 }
 
 int simulation_menu() {
+  puts("\n===============GERIR SIMULAÇÃO===============\n");
+
   const char* options[] = {
       "Carregar localidade", "Adicionar poste",
       "Remover poste",       "Adicionar rua",
       "Remover rua",         "Actualizar distância entre postes",
       "Destruir simulação",  "Voltar"};
+
   return showOptions(options, sizeof(options) / sizeof(options[0]));
 }
+
 void handleSimulation(Graph** graph) {
   bool out = false;
   while (!out) {
     int option = menu(simulation_menu);
+
+    if (!(*graph) && !(option == 1 || option == 8)) {
+      puts("!! Considere carregar o grafo antes de qualquer operação !!\n");
+      option = 1;
+    }
+
     switch (option) {
       case 1:
         *graph = loadPlace();
@@ -191,12 +235,14 @@ bool simulationUseCase(Graph** mainGraph, User* user) {
   Graph* graph = *mainGraph;
   while (true) {
     clearConsole();
+    puts("\n===============SIMULAÇÃO===============\n");
     int i = 1, option;
 
-    if (!graph) puts("Grafo Inexistente");
+    if (!graph) puts("!! Grafo Inexistente !!");
 
     if (user->isAdmin) printf("%d - Gerir Simulação\n", i++);
     if (graph) {
+      printf("%d - Melhor ligação entre 2 postes\n", i++);
       printf("%d - Iluminação da localidade\n", i++);
       printf("%d - Melhor solução de iluminação da localidade\n", i++);
       printf("%d - Iluminação de ruas adjacentes\n", i++);
@@ -206,19 +252,22 @@ bool simulationUseCase(Graph** mainGraph, User* user) {
 
     validateOption(&option, 1, i, NULL);
 
+    clearConsole();
     if (option == 1 && user->isAdmin) {
       handleSimulation(&graph);
     } else if ((option == 1 || (option == 2 && user->isAdmin)) && graph) {
-      handleTotalIlumination(graph);
+      handleBestConnection(graph);
     } else if ((option == 2 || (option == 3 && user->isAdmin)) && graph) {
-      handleBestSolution(graph);
+      handleTotalIlumination(graph);
     } else if ((option == 3 || (option == 4 && user->isAdmin)) && graph) {
+      handleBestSolution(graph);
+    } else if ((option == 4 || (option == 5 && user->isAdmin)) && graph) {
       handleIlluminateAdjacentStreet(graph);
     } else {
       break;
     }
 
-    pause();
+    if (option != 1 || (option != 1 && user->isAdmin)) pause();
   }
 
   *mainGraph = graph;

@@ -9,8 +9,7 @@
 
 User* login(Avl* tree) {
   UserData user;
-  clearConsole();
-  puts("======== Login ========");
+  puts("======== Login ========\n");
   int attempts = 3;
 
   while (attempts--) {
@@ -18,13 +17,13 @@ User* login(Avl* tree) {
 
     puts("Informe com precisão os dados abaixo.");
 
-    printf("Nome de utilizador:");
-    scanf("%19[^ \n]", user.username);
+    printf("Nome de utilizador: ");
     fflush(stdin);
+    scanf("%19[^ \n]", user.username);
 
     printf("Senha: ");
-    scanf("%15[^ \n]", user.password);
     fflush(stdin);
+    scanf("%15[^ \n]", user.password);
 
     User* foundUser = findOne(tree, user.username);
     if (!foundUser || hash(user) != foundUser->password) {
@@ -32,8 +31,6 @@ User* login(Avl* tree) {
       continue;
     }
 
-    printf("Bem vindo(a) Sr(a). %s\n", foundUser->username);
-    pause();
     return foundUser;
   }
 
@@ -43,8 +40,6 @@ User* login(Avl* tree) {
 
 void signup(Avl** tree) {
   UserData user;
-  clearConsole();
-  puts("======== SignUp ========");
 
   do {
     printf("Informe o nome de utilizador\n[4-20 caracteres]: ");
@@ -61,11 +56,10 @@ void signup(Avl** tree) {
   insertUser(tree, user);
 
   puts("Utilizador criado com sucesso!\n Já pode efectuar o seu login");
-  pause();
 }
 
 int auth_menu() {
-  puts("======= AUTENTICAÇÃO ========");
+  puts("======= AUTENTICAÇÃO ========\n");
 
   const char* options[] = {"Entrar", "Registar-se", "Sair"};
   return showOptions(options, sizeof(options) / sizeof(options[0]));
@@ -75,6 +69,7 @@ User* authUseCase(Avl** tree) {
     clearConsole();
     User* user = NULL;
     int option = menu(auth_menu);
+    clearConsole();
 
     switch (option) {
       case 1:
@@ -82,7 +77,9 @@ User* authUseCase(Avl** tree) {
         if (user) return user;
         break;
       case 2:
+        puts("======== SignUp ========");
         signup(tree);
+        pause();
         break;
       case 3:
         return NULL;
@@ -90,13 +87,68 @@ User* authUseCase(Avl** tree) {
   }
 }
 
-void handleUsers(Avl** tree) {
-  puts("Gerir Utilizadores");
-  pause();
+int users_menu() {
+  puts("========== GERIR UTILIZADORES ==========\n");
+
+  const char* options[] = {"Listar utilizadores", "Criar utilizador",
+                           "Eliminar utilizador", "Voltar"};
+
+  return showOptions(options, sizeof(options) / sizeof(options[0]));
 }
 
+void handleUsers(Avl** tree) {
+  while (true) {
+    int option = menu(users_menu);
+
+    switch (option) {
+      case 1: {
+        puts("========== UTILIZADORES CADASTRADOS ==========\n");
+        findAllUsers(*tree, "admin");
+      } break;
+      case 2: {
+        puts("========== CRIAR UTILIZADOR ==========\n");
+        signup(tree);
+      } break;
+      case 3: {
+        puts("========== ELIMINAR UTILIZADOR ==========\n");
+        char username[MAX_USERNAME];
+        do {
+          if (strcmp(username, "admin") == 0)
+            puts(
+                "!! Se deseja eliminar a conta acesse o seu perfil! "
+                "!!\n== Informe um novo ou digite qualquer character para"
+                "terminar == \n");
+
+          printf("Nome de utilizador: ");
+          scanf("%19[^ \n]", username);
+          fflush(stdin);
+        } while (strcmp(username, "admin") == 0);
+
+        *tree = removeUser(*tree, username);
+        saveAllUsers(*tree);
+
+      } break;
+      case 4:
+        return;
+    }
+    pause();
+  }
+}
+
+int profile_menu() {
+  const char* options[] = {"Modificar Senha", "Eliminar Conta", "Voltar"};
+
+  return showOptions(options, sizeof(options) / sizeof(options[0]));
+}
 int handleProfile(Avl** tree, User* user) {
   puts("Perfil");
+  int option = menu(profile_menu);
+
+  switch (option) {
+    case 1:
+      break;
+  }
+
   pause();
   return 1;
 }
@@ -105,6 +157,8 @@ int usersUseCase(Avl** tree, User* user) {
   while (true) {
     clearConsole();
     int i = 1, option;
+    printf("\nBem vindo(a) Sr(a). %s\n\n", user->username);
+
     if (user->isAdmin) printf("%d - Gerir Utilizadores\n", i++);
     printf("%d - Perfil\n", i++);
     printf("%d - Ir para a Simulação\n", i++);

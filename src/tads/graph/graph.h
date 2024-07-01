@@ -1,6 +1,8 @@
 #ifndef __GRAPH_ADJACENCY_LIST_
 #define __GRAPH_ADJACENCY_LIST_
 
+#include <stdbool.h>
+
 typedef struct Street {
   int destination;
   float distance;
@@ -25,9 +27,10 @@ Graph* updateDistance(Graph* graph, int srcPost, int destinationPost,
                       float newDistance);
 Graph* addPost(Graph* graph);
 Graph* removePost(Graph* graph, int srcPost);
-float illuminateStreetsFromPost(Graph* graph, int srcPost);
-float illuminateStreets(Graph* graph);
-Graph* destroyGraph(Graph* graph);
+float illuminateStreetsFromPost(Graph* graph, int srcPost, bool calculateOnly,
+                                bool sumAll);
+float illuminateStreets(Graph* graph, bool calculateOnly);
+void destroyGraph(Graph** graph);
 float primMST(Graph* graph);
 float dijkstraSP(Graph* graph, int src, int destination);
 

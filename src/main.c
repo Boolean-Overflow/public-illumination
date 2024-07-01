@@ -28,6 +28,10 @@ auth: {
   if (!endApplication) goto auth;
 
 end: {
+  loggedUser = NULL;
+  if (tree) clearUsers(&tree);
+  if (graph) destroyGraph(&graph);
+
   puts("Obrigado ;)\nBy: Grupo 2");
   puts("Matateu André - 20212549🤓");
   puts("Lukeny Silva - 20220718😎");

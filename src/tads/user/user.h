@@ -31,12 +31,12 @@ typedef struct Node {
 
 void insertUser(Avl** tree, UserData userData);
 
-Avl* removeUser(Avl* users, char* username);
+Avl* removeUser(Avl* tree, char* username);
 
-User* findOne(Avl* users, char* username);
+User* findOne(Avl* tree, char* username);
 
-void findAllUsers(Avl* users);
-// bool clearUsers(Avl** users);
+void findAllUsers(Avl* tree, char* except);
+void clearUsers(Avl** tree);
 
 // User functions
 Avl* loadUsers(long* count);

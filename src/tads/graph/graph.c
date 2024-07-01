@@ -133,28 +133,36 @@ Graph* removePost(Graph* graph, int src) {
   return graph;
 }
 
-float illuminateStreetsFromPost(Graph* graph, int srcPost) {
+float illuminateStreetsFromPost(Graph* graph, int srcPost, bool calculateOnly,
+                                bool sumAll) {
   float total = 0.0;
+  float repeated = 0.0;
   Street* street = graph->posts[srcPost].head;
   if (!street) return total;
-  printf("\n [%d]", srcPost);
+  if (!calculateOnly) printf("\n [%d]", srcPost);
   while (street) {
-    if (srcPost < street->destination) total += street->distance;
-    printf("-> %d(%.2fm) ", street->destination, street->distance);
+    if (srcPost > street->destination) repeated += street->distance;
+    total += street->distance;
+
+    if (!calculateOnly)
+      printf("-> %d(%.2fm) ", street->destination, street->distance);
+
     street = street->next;
   }
-  printf("\n");
-  return total;
+  if (!calculateOnly) printf("\n");
+
+  return sumAll ? total : total - repeated;
 }
 
-float illuminateStreets(Graph* graph) {
+float illuminateStreets(Graph* graph, bool calculateOnly) {
   if (!graph) {
     puts("Grafo inexistente!\n Considere criar uma localidade.");
     return 0.0;
   }
+
   float total = 0.0;
   for (int post = 1; post <= graph->totalPosts; ++post)
-    total += illuminateStreetsFromPost(graph, post);
+    total += illuminateStreetsFromPost(graph, post, calculateOnly, false);
 
   return total;
 }
@@ -187,9 +195,9 @@ Graph* updateDistance(Graph* graph, int src, int dest, float newDistance) {
   return graph;
 }
 
-Graph* destroyGraph(Graph* graph) {
-  for (int i = 0; i <= graph->totalPosts; ++i) {
-    Street* current = graph->posts[i].head;
+void destroyGraph(Graph** graph) {
+  for (int i = 0; i <= (*graph)->totalPosts; ++i) {
+    Street* current = (*graph)->posts[i].head;
 
     while (current) {
       Street* temp = current;
@@ -197,17 +205,17 @@ Graph* destroyGraph(Graph* graph) {
       free(temp);
     }
   }
-  free(graph->posts);
-  free(graph);
+  free((*graph)->posts);
+  free(*graph);
 
-  return NULL;
+  *graph = NULL;
 }
 
 float printMST(int parent[], float distances[], int totalPosts) {
-  printf("Arestas do MST:\n");
+  printf("Ruas a serem iluminadas:\n");
   float cost = 0.0;
   for (int post = 2; post <= totalPosts; post++) {
-    printf("%d - %d: %.2fm\n", parent[post], post, distances[post]);
+    printf("%d -> %d: %.2fm\n", parent[post], post, distances[post]);
     cost += distances[post];
   }
 
@@ -260,7 +268,7 @@ void printPath(int parent[], int destination) {
     return;
   }
   printPath(parent, parent[destination]);
-  printf("%d ", destination);
+  printf(" -> %d", destination);
 }
 
 void printShortestPaths(int parent[], float dist[], int totalPosts, int src) {
