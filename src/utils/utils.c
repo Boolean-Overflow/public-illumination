@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+bool inRange(int value, int min, int max) {
+  return value >= min && value <= max;
+}
+
 void clearConsole() { printf("\033[2J\033[H"); }
 
 void pause() {
@@ -33,7 +37,7 @@ void validateOption(int* option, int min, int max, char* error_message) {
     printf("[%d-%d]: ", min, max);
 
     fflush(stdin);
-    valid = scanf("%d", option) && (*option >= min && *option <= max);
+    valid = scanf("%d", option) && inRange(*option, min, max);
   } while (!valid);
 }
 
