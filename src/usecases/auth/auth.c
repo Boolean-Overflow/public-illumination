@@ -136,8 +136,8 @@ void handleUsers(Avl** tree) {
 }
 
 int profile_menu() {
-  const char* options[] = {"Modificar Nome", " Modificar Senha ",
-                           " Eliminar Conta ", " Voltar "};
+  const char* options[] = {"Modificar Nome", "Modificar Senha ",
+                           "Eliminar Conta", "Voltar"};
   return showOptions(options, sizeof(options) / sizeof(options[0]));
 }
 
@@ -162,22 +162,33 @@ bool confirmPassword(User* user) {
 
 void getNewPassword(Avl** tree, User* user) {
   if (confirmPassword(user)) {
+    UserData userData;
+
     do {
       printf("Informe a nova senha de utilizador\n[8-16 caracteres]: ");
-      scanf("%15[^ \n]", user->password);
+      scanf("%15[^ \n]", userData.password);
       fflush(stdin);
-    } while (!validatePassword(user->password));
+    } while (!validatePassword(userData.password));
+
+    strcpy(userData.username, user->username);
+    user->password = hash(userData);
+
     saveAllUsers(*tree);
   }
 }
 
 void getNewUserName(Avl** tree, User* user) {
   if (confirmPassword(user)) {
+    char username[MAX_USERNAME];
+
     do {
       printf("Informe o nome de utilizador\n[4-20 caracteres]: ");
-      scanf("%19[^ \n]", user->username);
+      scanf("%19[^ \n]", username);
       fflush(stdin);
-    } while (!validateUsername(*tree, user->username));
+    } while (!validateUsername(*tree, username));
+
+    strcpy(user->username, username);
+
     saveAllUsers(*tree);
   }
 }
@@ -188,24 +199,25 @@ void eliminateUser(Avl** tree, User* user) {
     saveAllUsers(*tree);
   }
 }
+
 int handleProfile(Avl** tree, User* user) {
-  puts("Perfil");
-  int option = menu(profile_menu);
-  switch (option) {
-    case 1:
-      getNewUserName(tree, user);
-      break;
-    case 2:
-      getNewPassword(tree, user);
-      break;
-    case 3:
-      eliminateUser(tree, user);
-      break;
-    case 4:
-      return 0;
-      break;
+  while (true) {
+    int option = menu(profile_menu);
+    switch (option) {
+      case 1:
+        getNewUserName(tree, user);
+        break;
+      case 2:
+        getNewPassword(tree, user);
+        break;
+      case 3:
+        eliminateUser(tree, user);
+        return 0;
+      case 4:
+        return 1;
+    }
+    pause();
   }
-  pause();
   return 1;
 }
 
