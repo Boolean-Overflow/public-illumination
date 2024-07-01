@@ -126,7 +126,6 @@ void handleUsers(Avl** tree) {
 
         *tree = removeUser(*tree, username);
         saveAllUsers(*tree);
-
       } break;
       case 4:
         return;
@@ -141,19 +140,18 @@ int profile_menu() {
   return showOptions(options, sizeof(options) / sizeof(options[0]));
 }
 
-bool confirmPassword(User* user) {
-  UserData userdata;
+bool confirmPassword(User* user, UserData* userdata) {
   int attempts = 3;
-  strcpy(userdata.username, user->username);
+  strcpy(userdata->username, user->username);
   hash_t hash_value = 0;
   do {
     printf("Senha: ");
-    scanf("%15[^ \n]", userdata.password);
+    scanf("%15[^ \n]", userdata->password);
     fflush(stdin);
-    hash_value = hash(userdata);
+    hash_value = hash(*userdata);
     if (hash_value != user->password) {
       printf("Senha de utilizador invalida! Restam-lhe %d tentativas!\n",
-             attempts--);
+             --attempts);
     }
   } while (attempts != 0 && hash_value != user->password);
 
@@ -161,43 +159,49 @@ bool confirmPassword(User* user) {
 }
 
 void getNewPassword(Avl** tree, User* user) {
-  if (confirmPassword(user)) {
-    UserData userData;
-
+  UserData userdata;
+  if (confirmPassword(user, &userdata)) {
     do {
       printf("Informe a nova senha de utilizador\n[8-16 caracteres]: ");
-      scanf("%15[^ \n]", userData.password);
+      scanf("%15[^ \n]", userdata.password);
       fflush(stdin);
-    } while (!validatePassword(userData.password));
+    } while (!validatePassword(userdata.password));
 
-    strcpy(userData.username, user->username);
-    user->password = hash(userData);
-
+    user->password = hash(userdata);
     saveAllUsers(*tree);
+    puts("Senha alterada com sucesso!");
+    return;
   }
+  puts("Senha Inalterada!");
 }
 
 void getNewUserName(Avl** tree, User* user) {
-  if (confirmPassword(user)) {
-    char username[MAX_USERNAME];
-
+  UserData userdata;
+  if (confirmPassword(user, &userdata)) {
     do {
-      printf("Informe o nome de utilizador\n[4-20 caracteres]: ");
-      scanf("%19[^ \n]", username);
+      printf("Informe o novo nome de utilizador\n[4-20 caracteres]: ");
+      scanf("%19[^ \n]", userdata.username);
       fflush(stdin);
-    } while (!validateUsername(*tree, username));
+    } while (!validateUsername(*tree, userdata.username));
 
-    strcpy(user->username, username);
-
+    strcpy(user->username, userdata.username);
+    user->password = hash(userdata);
     saveAllUsers(*tree);
+    puts("Nome de utilizador alterado com sucesso!");
+    return;
   }
+  puts("Nome de usuario Inalterado!");
 }
 
 void eliminateUser(Avl** tree, User* user) {
-  if (confirmPassword(user)) {
+  UserData userdata;
+  if (confirmPassword(user, &userdata)) {
     removeUser(*tree, user->username);
     saveAllUsers(*tree);
+    puts("Utilizador eliminado com sucesso!");
+    return;
   }
+  puts("Falha ao eliminar o utilizador");
 }
 
 int handleProfile(Avl** tree, User* user) {

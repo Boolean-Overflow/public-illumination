@@ -7,7 +7,12 @@
 
 #include "../../utils/utils.h"
 
-// Function to load the place from a file
+/**
+ * Loads a graph representing a place from a file.
+ * Prompts the user for a filename and loads vertices, edges, and streets
+ * from the file into a new Graph structure.
+ * Returns the loaded Graph.
+ */
 Graph* loadPlace() {
   char filename[255];
 
@@ -22,12 +27,15 @@ Graph* loadPlace() {
   FILE* file = fopen(filename, "r");  // Open the file for reading
   if (!file) {
     fprintf(stderr, "Erro ao abrir o ficheiro \"%s\"\n", filename);
-    exit(EXIT_FAILURE);
+    return NULL;
   }
 
   int vertices, edges;
   // Read the number of vertices and edges from the file
-  fscanf(file, "%d %d", &vertices, &edges);
+  if (fscanf(file, "%d %d", &vertices, &edges) != 2) {
+    puts("\n!! Ficheiro fora do formato previsto! !!\n");
+    return NULL;
+  }
 
   // Create a new graph with the given number of vertices
   Graph* graph = createGraph(vertices);
@@ -48,13 +56,19 @@ Graph* loadPlace() {
   return graph;
 }
 
-// Function to handle adding a new post to the graph
+/**
+ * Prompts the user to add a new post to the graph.
+ * Calls the addPost function and updates the graph pointer accordingly.
+ */
 void hadleAddPost(Graph** graph) {
   puts("\n===============ADICIONAR POSTE===============\n");
   *graph = addPost(*graph);
 }
 
-// Function to handle removing a post from the graph
+/**
+ * Prompts the user to remove a post from the graph.
+ * Validates the input and calls the removePost function.
+ */
 void handleRemovePost(Graph** graph) {
   puts("\n===============REMOVER POSTE===============\n");
   int srcPost = 0;
@@ -66,7 +80,11 @@ void handleRemovePost(Graph** graph) {
   printf("Post %d removido com sucesso!\n", srcPost);
 }
 
-// Function to handle adding a new street to the graph
+/**
+ * Prompts the user to add a new street to the graph.
+ * Validates input for source, destination, and distance,
+ * then calls addStreet to add the street to the graph.
+ */
 void handleAddStreet(Graph** graph) {
   puts("\n===============ADICIONAR RUA===============\n");
 
@@ -78,6 +96,8 @@ void handleAddStreet(Graph** graph) {
 
   printf("Informe o poste de destino: ");
   validateOption(&dest, 1, (*graph)->totalPosts, NULL);
+
+  // Validate and read the distance between the posts
   do {
     if (!valid) puts("Valor inválido!");
 
@@ -88,7 +108,11 @@ void handleAddStreet(Graph** graph) {
   printf("Rua de %d à %d distando %.2fm adicionada !", src, dest, distance);
 }
 
-// Function to handle removing a street from the graph
+/**
+ * Prompts the user to remove a street from the graph.
+ * Validates input for source and destination posts,
+ * then calls removeStreet to remove the street from the graph.
+ */
 void handleRemoveStreet(Graph** graph) {
   puts("\n===============REMOVER RUA===============\n");
 
@@ -104,7 +128,11 @@ void handleRemoveStreet(Graph** graph) {
   printf("Rua de %d à %d removida !", src, dest);
 }
 
-// Function to handle updating the distance of a street in the graph
+/**
+ * Prompts the user to update the distance of a street in the graph.
+ * Validates input for source, destination, and new distance,
+ * then calls updateDistance to update the street's distance in the graph.
+ */
 void handleUpdateDistance(Graph** graph) {
   puts("\n===============EDITAR DISTÂNCIA===============\n");
 
@@ -117,6 +145,7 @@ void handleUpdateDistance(Graph** graph) {
   printf("Informe o poste de destino: ");
   validateOption(&dest, 1, (*graph)->totalPosts, NULL);
 
+  // Validate and read the new distance between the posts
   do {
     if (!valid) puts("Valor inválido!");
 
@@ -127,7 +156,10 @@ void handleUpdateDistance(Graph** graph) {
   printf("\n\n");
 }
 
-// Function to handle the total illumination calculation of the graph
+/**
+ * Handles the calculation of total illumination cost for the graph.
+ * Calls illuminateStreets to calculate total illumination cost and prints it.
+ */
 void handleTotalIlumination(Graph* graph) {
   puts("\n===============ILLUMINAÇÃO TOTAL===============\n");
 
@@ -136,7 +168,11 @@ void handleTotalIlumination(Graph* graph) {
   printf("Custo total: %.2fKzs", distance * COST_PER_METER);
 }
 
-// Function to handle illumination of adjacent streets from a specific post
+/**
+ * Handles the illumination of adjacent streets from a specific post in the
+ * graph. Prompts the user for a post, then calls illuminateStreetsFromPost to
+ * calculate and print the total illumination cost for adjacent streets.
+ */
 void handleIlluminateAdjacentStreet(Graph* graph) {
   puts("\n===============ILUMINAÇÃO DE RUAS ADJACENTES===============\n");
 
@@ -148,10 +184,14 @@ void handleIlluminateAdjacentStreet(Graph* graph) {
   printf("Illuminação de todas as ruas partindo do poste %d\n", src);
   float distance = illuminateStreetsFromPost(graph, src, false, true);
   puts("\n");
-  printf("CUSTO TOTAL: %.2f\n", distance * COST_PER_METER);
+  printf("CUSTO TOTAL: %.2fKzs\n", distance * COST_PER_METER);
 }
 
-// Function to handle the best solution calculation for illumination
+/**
+ * Handles the calculation of the best solution for illumination in the graph.
+ * Calls illuminateStreets with the efficient option enabled,
+ * then calculates and prints the total cost and savings percentage.
+ */
 void handleBestSolution(Graph* graph) {
   puts("\n===============MELHOR SOLUÇÃO PARA A ILUMINAÇÃO===============\n");
 
@@ -167,7 +207,12 @@ void handleBestSolution(Graph* graph) {
       totalCost, bestCost, saved, (saved / totalCost) * 100);
 }
 
-// Function to handle the best connection calculation between two posts
+/**
+ * Handles the calculation of the best connection between two posts in the
+ * graph. Prompts the user for source and destination posts, then calls
+ * dijkstraSP to calculate and print the shortest path distance and cost between
+ * them.
+ */
 void handleBestConnection(Graph* graph) {
   puts("\n===============MELHOR LIGAÇÃO ENTRE POSTES===============\n");
 
@@ -186,7 +231,11 @@ void handleBestConnection(Graph* graph) {
          distance, distance * COST_PER_METER);
 }
 
-// Function to handle the destruction of the simulation
+/**
+ * Handles the destruction of the simulation by destroying the graph.
+ * Prints a success message if the graph is successfully destroyed,
+ * otherwise prints an error message and exits with failure.
+ */
 void handleDestroySimulation(Graph** graph) {
   puts("=============DESTRUIR SIMULAÇÃO============");
   destroyGraph(graph);
@@ -196,7 +245,10 @@ void handleDestroySimulation(Graph** graph) {
   puts("Simulação destruida com sucesso!");
 }
 
-// Function to display the simulation menu
+/**
+ * Displays the simulation menu options and prompts the user to choose an
+ * option. Returns the chosen option index.
+ */
 int simulation_menu() {
   puts("\n===============GERIR SIMULAÇÃO===============\n");
 
@@ -209,7 +261,12 @@ int simulation_menu() {
   return showOptions(options, sizeof(options) / sizeof(options[0]));
 }
 
-// Function to handle the simulation process
+/**
+ * Handles the overall simulation process.
+ * Displays the simulation menu and performs corresponding actions based on user
+ * input, including loading a graph, managing posts and streets, and calculating
+ * illumination solutions.
+ */
 void handleSimulation(Graph** graph) {
   bool out = false;
   while (!out) {
@@ -250,7 +307,14 @@ void handleSimulation(Graph** graph) {
   }
 }
 
-// Function to handle the simulation use case
+/**
+ * Handles the main simulation use case.
+ * Displays the main simulation menu and prompts the user to choose an option,
+ * then performs corresponding actions based on user input,
+ * including managing simulation tasks and calculating illumination solutions.
+ * Updates the main graph pointer accordingly.
+ * Returns false to indicate completion of simulation.
+ */
 bool simulationUseCase(Graph** mainGraph, User* user) {
   Graph* graph = *mainGraph;
   while (true) {

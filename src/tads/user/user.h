@@ -38,7 +38,6 @@ User* findOne(Avl* tree, char* username);
 void findAllUsers(Avl* tree, char* except);
 void clearUsers(Avl** tree);
 
-// User functions
 Avl* loadUsers(long* count);
 bool saveUser(User* user, FILE* stream);
 void saveAllUsers(Avl* users);
