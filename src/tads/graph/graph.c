@@ -137,7 +137,7 @@ Graph* removeStreet(Graph* graph, int src, int destination) {
  */
 Graph* removePost(Graph* graph, int src) {
   // Remove all streets connected to the specified post (src)
-  for (int i = 0; i < graph->totalPosts; ++i) {
+  for (int i = 1; i <= graph->totalPosts; ++i) {
     Street* current = graph->posts[i].head;
     Street* prev = NULL;
 
